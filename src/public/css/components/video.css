@@ -1,0 +1,139 @@
+
+#call{
+    background-color: rgba(0,0,0,0.5);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+#myStream {
+    position: relative;
+    margin-right: 20px;
+}
+#myFace {
+    width: 940px;
+    height: 780px
+}
+.call__button{
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    left: 20px;
+    bottom: 70px;
+    width: 120px;
+}
+#mute{
+    color: #CC0000;
+}
+.call__button div{
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0,0,0,0.4);
+    color: white;
+    font-size: 26px;
+}
+
+.call__setting {
+    position: absolute;
+    right: 21px;
+    top: 55px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.call__setting-icon{
+    cursor: pointer;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+.call__setting-box {
+    display: none;
+    justify-content: space-around;
+    align-items: center;
+    width: 290px;
+    height: 55px;
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 3px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.call__setting-box div{
+    display: flex;
+    flex-direction: column;
+}
+.call__setting-box{
+    color:white
+}
+.call__setting-box div span{
+    padding-bottom: 5px;
+    font-size: 17px;
+
+}
+.call__setting-box div select{
+    all: unset;
+    font-size: 14px;
+    border: 0.1px solid white;
+    -webkit-appearance: auto;
+    
+}
+.fa-camera{
+    font-size: 20px;
+    padding-right: 5px;
+}
+#peerFace{
+    position: absolute;
+    right: 20px;
+    bottom: 40px;
+    width: 200px;
+    height: 300px;
+}
+
+.roomName{
+    font-size: 40px;
+    color: white;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-align: right;
+}
+.message__box {
+    height: 630px;
+    width: 350px;
+    background-color: rgba(0,0,0,0.2);
+    padding: 10px;
+    box-sizing: border-box;
+    position: relative;
+}
+li {
+    color: white;
+}
+.message__Form{
+    position: absolute;
+    bottom: 13px;
+    left: 10px;
+}
+.message__Input{
+    width: 300px;
+    height: 30px;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    padding: 15px;
+    border-radius: 15px;
+    font-size: 15px;
+    
+}
+.message__button-icon{
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    font-size: 25px;
+    color:#CC0000;
+    cursor: pointer;
+}
