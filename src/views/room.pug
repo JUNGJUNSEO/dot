@@ -1,0 +1,32 @@
+extends base
+
+block content
+
+    div#call(data-id= roomname)
+        div#myStream
+            video#myFace(autoplay,playsinline)
+            div.call__button
+                div#mute
+                    i.fas.fa-microphone
+                div#camera 
+                    i.fas.fa-video
+            div.call__setting
+                i.call__setting-icon.fas.fa-wrench
+                div.call__setting-box
+                    
+                    i.fas.fa-camera
+                    div
+                        span camera change
+                        select#cameras
+            video#peerFace(autoplay,playsinline)
+        div.message
+            div.roomName #{roomname}
+            div.message
+                div.message__box
+                    ul
+                    form.message__Form
+                        input.message__Input(placeholder="message", required, type="text")
+                        i.message__button-icon.fas.fa-paper-plane
+            
+block scripts
+    script(src="/public/js/room.js") 
