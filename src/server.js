@@ -6,9 +6,18 @@ const app = express();
 
 app.set("view engine", "pug");
 app.set("views", __dirname + "/views");
+// /public에 static을 해준 이유는?
 app.use("/public", express.static(__dirname + "/public"));
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.get("/", (_, res) => res.render("home"));
+app.post("/room", (req, res) => {
+  const {roomname, username} = req.body
+  return res.render("room", {roomname, username})
+});
 app.get("/*", (_, res) => res.redirect("/"));
+
 
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
@@ -26,6 +35,10 @@ wsServer.on("connection", (socket) => {
   });
   socket.on("ice", (ice, roomName) => {
     socket.to(roomName).emit("ice", ice);
+  });
+  socket.on("new_message", (msg, room, done) => {
+    socket.to(room).emit("new_message", `${msg}`);
+    done();
   });
 });
 
