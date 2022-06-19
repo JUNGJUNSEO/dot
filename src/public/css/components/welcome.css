@@ -1,0 +1,56 @@
+#welcome{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}
+
+h1 {
+    font-size: 50px;
+    font-weight: 600;
+    margin-bottom: 50px;
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+input{
+    all: unset;
+}
+
+button{
+    all:unset;
+    cursor: pointer;
+    color: #999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.neumorphic {
+    box-shadow: 12px 12px 24px 0 rgba(0, 0, 0, 0.2),
+      -12px -12px 24px 0 rgba(255, 255, 255, 0.5);
+    font-size: 20px;
+    width: 250px;
+    height: 50px;
+    border-radius: 40px;
+    overflow: hidden;
+    padding: 1.3rem;
+    display: flex;
+    margin-bottom: 10px;
+    height: 25px;
+    
+    
+  }
+  
+.neumorphic--pressed {
+    box-shadow: inset 6px 6px 10px 0 rgba(0, 0, 0, 0.2),
+      inset -6px -6px 10px 0 rgba(255, 255, 255, 0.5);
+  }
+  
+  
+  
