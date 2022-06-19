@@ -1,0 +1,17 @@
+/* Config */
+@import "./config/_reset.css";
+
+/* Components */
+@import "./components/video.css";
+@import "./components/welcome.css";
+
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+body {
+    background-color: #e0e0e0;
+}
