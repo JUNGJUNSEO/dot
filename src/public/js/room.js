@@ -3,6 +3,7 @@ const socket = io();
 const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
+const phoneBtn = document.getElementById("phone");
 const camerasSelect = document.getElementById("cameras");
 const call = document.getElementById("call");
 
@@ -11,14 +12,24 @@ let myStream;
 let muted = false;
 let cameraOff = false;
 let roomName;
+let userName
 let myPeerConnection;
 let myDataChannel;
 
 async function initCall() {
   await getMedia();
   makeConnection();
-  const {id} = call.dataset
-  roomName = id
+  const {id} = call.dataset;
+  const objData = JSON.parse(id);
+
+  if (!objData.camera){
+    handleCameraClick()
+  }
+  if (!objData.voice){
+    handleMuteClick()
+  }
+  roomName = objData.roomname
+  userName = objData.username
   socket.emit("join_room", roomName);
 }
 
@@ -69,6 +80,7 @@ async function getMedia(deviceId) {
 // 음성 끄고 켜기
 function handleMuteClick() {
   const icon = muteBtn.querySelector("i")
+  
   myStream
     .getAudioTracks()
     .forEach((track) => (track.enabled = !track.enabled));
@@ -109,6 +121,10 @@ function handleCameraClick() {
   }
 }
 
+function handlePhoneClick() {
+  history.back() 
+}
+
 async function handleCameraChange() {
   await getMedia(camerasSelect.value);
   if (myPeerConnection) {
@@ -122,6 +138,7 @@ async function handleCameraChange() {
 
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
+phoneBtn.addEventListener("click", handlePhoneClick);
 camerasSelect.addEventListener("input", handleCameraChange);
 
 // Welcome Form (join a room)
@@ -132,24 +149,30 @@ camerasSelect.addEventListener("input", handleCameraChange);
 
 // Socket Code
 socket.on("welcome", async () => {
-    console.log('jungjun')
-    // message 
-    myDataChannel = await myPeerConnection.createDataChannel("chat");
-    myDataChannel.addEventListener("message", (event) => addMessage(`${event.data}`, "peer"));
-
-    // video
-    const offer = await myPeerConnection.createOffer();
-    myPeerConnection.setLocalDescription(offer);
-    console.log("sent the offer");
-    socket.emit("offer", offer, roomName);
+  // 방을 만든 사람.
+  // message - peer에게 오는 message
+  myDataChannel = await myPeerConnection.createDataChannel("chat");
+  myDataChannel.addEventListener("message", (event) => {
+    const {value, userName} = JSON.parse(event.data)
+    addMessage(value, userName)});
+  
+  // video
+  const offer = await myPeerConnection.createOffer();
+  myPeerConnection.setLocalDescription(offer);
+  console.log("sent the offer");
+  socket.emit("offer", offer, roomName);
 });
 
 socket.on("offer", async (offer) => {
 
+  // message - peer에게 오는 message
   myPeerConnection.addEventListener("datachannel", (event) => {
     myDataChannel = event.channel;
-    myDataChannel.addEventListener("message", (event) => addMessage(`${event.data}`));
+    myDataChannel.addEventListener("message", (event) => {
+      const {value, userName} = JSON.parse(event.data)
+      addMessage(value, userName)});
   });
+
   console.log("received the offer");
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
@@ -204,10 +227,28 @@ const messagebutton = document.querySelector(".message__button-icon");
 
 function addMessage(message, person) {
   const ul = document.querySelector("ul");
-  const li = document.createElement("li");
-  li.innerText = message;
+  const first_char = person.charAt(0);
+  
   if (person === "my"){
-    li.style.textAlign = "end"
+    ul.insertAdjacentHTML("beforeend",`
+    <li style="justify-content: right">
+      <div>
+        <span>${person}</span>
+        <p>${message}</p>
+      </div>
+      <div class="message__user-img" style="margin-left: 15px">${first_char}</div>
+    </li>`)
+    
+  }
+  else{
+    ul.insertAdjacentHTML("beforeend",`
+    <li>
+      <div class="message__user-img" style="margin-right: 15px">${first_char}</div>
+      <div>
+        <span>${person}</span>
+        <p>${message}</p>
+      </div>
+    </li>`)
   }
   ul.appendChild(li);
 }
@@ -220,7 +261,7 @@ function handleMessageSubmit(event){
   }
   const value = input.value;
   addMessage(value, "my")
-  myDataChannel.send(value)
+  myDataChannel.send(JSON.stringify({value, userName}))
   input.value = "";
 }
 
