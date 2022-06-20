@@ -6,9 +6,22 @@ block content
         form(method="POST" action="/room")
             input.neumorphic.neumorphic--pressed(placeholder="Room Name", name="roomname", required, type="text")
             input.neumorphic.neumorphic--pressed(placeholder="User Name", name="username", required, type="text")
+            div.setting
+                span.setting__name Camera
+                label.switch
+                    span on off
+                    input(type="checkbox", name="camera")
+                    span.neumorphic--pressed.slider.round
+            div.setting
+                span.setting__name Voice
+                label.switch
+                    span on off
+                    input(type="checkbox", name="voice")
+                    span.neumorphic--pressed.slider.round
             button.neumorphic Enter room
 
-
+    <!-- Rounded switch -->
+    
     
 block scripts
     script(src="/public/js/home.js") 
