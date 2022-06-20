@@ -13,10 +13,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.get("/", (_, res) => res.render("home"));
 app.post("/room", (req, res) => {
+ 
+  const camera = req.body.camera ? false : true
+  const voice = req.body.voice ? false : true
   const {roomname, username} = req.body
-  return res.render("room", {roomname, username})
+  return res.render("room", {roomname, username, camera, voice})
 });
 app.get("/*", (_, res) => res.redirect("/"));
+
 
 
 const httpServer = http.createServer(app);
@@ -25,6 +29,7 @@ const wsServer = SocketIO(httpServer);
 wsServer.on("connection", (socket) => {
   socket.on("join_room", (roomName) => {
     socket.join(roomName);
+    // to - 나의 room을 제외한 나와 연결된 room에만 영향.
     socket.to(roomName).emit("welcome");
   });
   socket.on("offer", (offer, roomName) => {
