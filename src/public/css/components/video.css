@@ -22,9 +22,9 @@
     align-items: center;
     left: 20px;
     bottom: 70px;
-    width: 120px;
+    width: 190px;
 }
-#mute{
+#phone{
     color: #CC0000;
 }
 .call__button div{
@@ -113,6 +113,19 @@
 }
 li {
     color: white;
+    display: flex;
+    align-items: center;
+    
+}
+.message__user-img{
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: yellowgreen;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 25px;
 }
 .message__Form{
     position: absolute;
