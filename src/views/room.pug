@@ -2,7 +2,7 @@ extends base
 
 block content
 
-    div#call(data-id= roomname)
+    div#call(data-id= {roomname, username, camera, voice})
         div#myStream
             video#myFace(autoplay,playsinline)
             div.call__button
@@ -10,6 +10,8 @@ block content
                     i.fas.fa-microphone
                 div#camera 
                     i.fas.fa-video
+                div#phone 
+                    i.fas.fa-phone
             div.call__setting
                 i.call__setting-icon.fas.fa-wrench
                 div.call__setting-box
