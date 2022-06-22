@@ -219,54 +219,81 @@ const callSettingIcon = document.querySelector(".call__setting-icon")
 const callSettingBox = document.querySelector(".call__setting-box")
 
 
+// time
+function time() {
+  const today = new Date();   
+
+  const hours = ('0' + today.getHours()).slice(-2); 
+  const minutes = ('0' + today.getMinutes()).slice(-2);
+
+  const timeString = hours + ':' + minutes;
+  return timeString
+}
+
 
 // send message
 
 const msgForm = document.querySelector(".message__Form");
-const messagebutton = document.querySelector(".message__button-icon");
+const msgbutton = document.querySelector(".message__button-icon");
+const msgInput = document.querySelector(".message__Input");
 
 function addMessage(message, person) {
   const ul = document.querySelector("ul");
   const first_char = person.charAt(0);
-  
+  // const time = time()
+
   if (person === "my"){
     ul.insertAdjacentHTML("beforeend",`
     <li style="justify-content: right">
-      <div>
-        <span>${person}</span>
+      <div class="message__content" style="align-items: flex-end; ">
+        <span class="message__content-user">me</span>
         <p>${message}</p>
       </div>
-      <div class="message__user-img" style="margin-left: 15px">${first_char}</div>
+      <div class="message__user-img" style="margin-left: 15px; background-color: #1EAC86;">m</div>
     </li>`)
     
   }
   else{
     ul.insertAdjacentHTML("beforeend",`
     <li>
-      <div class="message__user-img" style="margin-right: 15px">${first_char}</div>
-      <div>
-        <span>${person}</span>
+      <div class="message__user-img" style="margin-right: 15px; background-color: #DFAF43;">${first_char}</div>
+      <div class="message__content">
+        <span class="message__content-user">${person}</span>
         <p>${message}</p>
       </div>
     </li>`)
   }
-  ul.appendChild(li);
-}
+
+};
 
 function handleMessageSubmit(event){
   event.preventDefault();
+  
   const input = msgForm.querySelector(".message__Input");
-  if (input === ""){
+  const message = document.querySelector(".message")
+  if (input.value === ""){
     return
   }
   const value = input.value;
   addMessage(value, "my")
+
+  message.scrollTop = message.scrollHeight;
   myDataChannel.send(JSON.stringify({value, userName}))
+  
+  
   input.value = "";
 }
 
+function resize(){
+  msgInput.style.height = (msgInput.scrollHeight)+"px";
+
+}
+
 msgForm.addEventListener("submit", handleMessageSubmit);
-messagebutton.addEventListener("click", handleMessageSubmit);
+msgbutton.addEventListener("click", handleMessageSubmit);
+// msgInput.addEventListener("keypress", handleMessageSubmit);
+msgInput.addEventListener("keydown", resize);
+msgInput.addEventListener("keyup", resize);
 
 //setting box
 
@@ -284,3 +311,21 @@ settingIcon.addEventListener("click", () => {
     toggle = true
   }
 });
+
+//Full screen
+const fullScreenBtn = document.getElementById("fullScreen");
+const fullScreenIcon = fullScreenBtn.querySelector("i");
+
+const handleFullscreen = () => {
+  const fullscreen = document.fullscreenElement;
+  if (fullscreen) {
+    document.exitFullscreen();
+    fullScreenIcon.classList = "fas fa-expand";
+  } else {
+    const stream = document.getElementById("myStream")
+    stream.requestFullscreen();
+    fullScreenIcon.classList = "fas fa-compress";
+  }
+};
+
+fullScreenBtn.addEventListener("click", handleFullscreen);
