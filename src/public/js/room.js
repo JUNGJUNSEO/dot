@@ -16,6 +16,18 @@ let userName
 let myPeerConnection;
 let myDataChannel;
 
+// message 창크기
+const message = document.querySelector(".message");
+const messageTitle = document.querySelector(".message__title");
+
+
+function handleResize(){
+  messageTitle.style.width = (message.scrollWidth)+"px";
+};
+
+window.addEventListener("resize", handleResize)
+
+
 async function initCall() {
   await getMedia();
   makeConnection();
@@ -31,9 +43,13 @@ async function initCall() {
   roomName = objData.roomname
   userName = objData.username
   socket.emit("join_room", roomName);
+
+  messageTitle.style.width = (message.scrollWidth)+"px";
 }
 
 initCall();
+
+
 
 // 카메라 종류.
 async function getCameras() {
@@ -96,9 +112,9 @@ function handleMuteClick() {
 
 // 카메라 끄고 켜기
 function handleCameraClick() {
-  const icon = cameraBtn.querySelector("i")
-  const buttons = document.querySelectorAll(".call__button div")
-
+  const icon = cameraBtn.querySelector("i");
+  const buttons = document.querySelectorAll(".call__button > div");
+  const phoneIcon = document.getElementById("phone")
   myStream
     .getVideoTracks()
     .forEach((track) => (track.enabled = !track.enabled));
@@ -110,6 +126,7 @@ function handleCameraClick() {
       button.style.color = "white"
       button.style.backgroundColor = "rgba(0,0,0,0.4)"
     })
+    phoneIcon.style.color = "#CC0000"
   } else {
     icon.classList = "fas fa-video-slash";
     cameraOff = true;
@@ -117,6 +134,7 @@ function handleCameraClick() {
       button.style.color = "black"
       button.style.backgroundColor = "white"
     })
+    phoneIcon.style.color = "#CC0000"
     
   }
 }
@@ -245,19 +263,19 @@ function addMessage(message, person) {
   if (person === "my"){
     ul.insertAdjacentHTML("beforeend",`
     <li style="justify-content: right">
-      <div class="message__content" style="align-items: flex-end; ">
-        <span class="message__content-user">me</span>
+      <div class="message__content" style="align-items: flex-end; background-color: #1EAC86; border-radius: 10px 10px 0 10px;">
+        <span class="message__content-user" style="color: white; ">me</span>
         <p>${message}</p>
       </div>
-      <div class="message__user-img" style="margin-left: 15px; background-color: #1EAC86;">m</div>
+      
     </li>`)
-    
+    // <div class="message__user-img" style="margin-left: 15px; ">m</div>
   }
   else{
     ul.insertAdjacentHTML("beforeend",`
     <li>
-      <div class="message__user-img" style="margin-right: 15px; background-color: #DFAF43;">${first_char}</div>
-      <div class="message__content">
+      <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
+      <div class="message__content" style="background-color: rgba(112, 128, 144, 0.1); color:black; border-radius: 10px 10px 10px 0px;">
         <span class="message__content-user">${person}</span>
         <p>${message}</p>
       </div>
@@ -266,7 +284,16 @@ function addMessage(message, person) {
 
 };
 
+
+
+
+
 function handleMessageSubmit(event){
+
+  if (event.key !== 'Enter'){
+    return
+  }
+
   event.preventDefault();
   
   const input = msgForm.querySelector(".message__Input");
@@ -284,16 +311,21 @@ function handleMessageSubmit(event){
   input.value = "";
 }
 
-function resize(){
-  msgInput.style.height = (msgInput.scrollHeight)+"px";
+
+
+function handleMessageResize(){
+  console.log(msgInput)
+  msgInput.style.height = 'auto';
+  let height = msgInput.scrollHeight; // 높이
+  msgInput.style.height = `${height}px`;
 
 }
 
-msgForm.addEventListener("submit", handleMessageSubmit);
+// msgForm.addEventListener("submit", handleMessageSubmit);
 msgbutton.addEventListener("click", handleMessageSubmit);
-// msgInput.addEventListener("keypress", handleMessageSubmit);
-msgInput.addEventListener("keydown", resize);
-msgInput.addEventListener("keyup", resize);
+msgInput.addEventListener("keypress", handleMessageSubmit);
+msgInput.addEventListener("keydown", handleMessageResize);
+msgInput.addEventListener("keyup", handleMessageResize);
 
 //setting box
 
@@ -329,3 +361,33 @@ const handleFullscreen = () => {
 };
 
 fullScreenBtn.addEventListener("click", handleFullscreen);
+
+
+// message window close
+
+const logoChat = document.querySelector(".logo__chat");
+let openChat = true
+
+function handleMessage(){
+  const logo = document.querySelector(".logo")
+  const myStream = document.getElementById("myStream")
+  const logoChat = document.querySelector(".logo__chat span")
+
+  if (openChat){
+    message.style.display = "none"
+    logo.style.gridColumn = "1/-1"
+    myStream.style.gridColumn = "1/-1"
+    logoChat.innerText = "Open the chat box"
+    openChat = false
+
+  }else{
+    message.style.display = "flex"
+    logo.style.gridColumn = "1/2"
+    myStream.style.gridColumn = "1/2"
+    logoChat.innerText = "close the chat box"
+    openChat = true
+  }
+
+}
+
+logoChat.addEventListener("click", handleMessage)
