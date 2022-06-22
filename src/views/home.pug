@@ -2,7 +2,9 @@ extends base
 
 block content
     div#welcome
-        h1 Noom
+        div.welcome__title 
+            span DOT
+            i.fas.fa-circle
         form(method="POST" action="/room")
             input.neumorphic.neumorphic--pressed(placeholder="Room Name", name="roomname", required, type="text")
             input.neumorphic.neumorphic--pressed(placeholder="User Name", name="username", required, type="text")
