@@ -6,13 +6,20 @@
 
 }
 
-h1 {
+.welcome__title  {
+    display: flex;
+    align-items: end;
     font-size: 50px;
     font-weight: 600;
     margin-bottom: 50px;
     color: #999999;
 }
 
+.welcome__title i{
+    margin-left: 5px;
+    font-size: 20px;
+    color: #1EAC86;
+}
 form{
     display: flex;
     flex-direction: column;
@@ -34,7 +41,7 @@ button{
     transition: 0.4s;
 }
 button:focus{
-    color: #CC0000;
+    color: black;
     box-shadow: inset 6px 6px 10px 0 rgba(0, 0, 0, 0.2),
       inset -6px -6px 10px 0 rgba(255, 255, 255, 0.5);
 }
