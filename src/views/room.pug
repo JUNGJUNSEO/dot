@@ -3,32 +3,33 @@ extends base
 block content
 
     div#call(data-id= {roomname, username, camera, voice})
+        div.logo ZOOM 
         div#myStream
-            video#myFace(autoplay,playsinline)
-            div.call__button
-                div#mute
-                    i.fas.fa-microphone
-                div#camera 
-                    i.fas.fa-video
-                div#phone 
-                    i.fas.fa-phone
+            //- width="900", height="700"
+            video#myFace( width="100%" height="100%" autoplay, playsinline)
+            
             div.call__setting
                 i.call__setting-icon.fas.fa-wrench
                 div.call__setting-box
-                    
                     i.fas.fa-camera
                     div
                         span camera change
                         select#cameras
+            div#fullScreen
+                    i.fas.fa-expand
             video#peerFace(autoplay,playsinline)
+        div.call__button
+            div#mute
+                i.fas.fa-microphone
+            div#camera 
+                i.fas.fa-video
+            div#phone 
+                i.fas.fa-phone
         div.message
-            div.roomName #{roomname}
-            div.message
-                div.message__box
-                    ul
-                    form.message__Form
-                        input.message__Input(placeholder="message", required, type="text")
-                        i.message__button-icon.fas.fa-paper-plane
+            ul
+            form.message__Form
+                textarea.message__Input( rows="1" placeholder="message", required, type="text")
+                i.message__button-icon.fas.fa-paper-plane
             
 block scripts
     script(src="/public/js/room.js") 
