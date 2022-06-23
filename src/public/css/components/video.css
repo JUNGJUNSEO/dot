@@ -183,18 +183,26 @@
     box-shadow: inset 0px 0px 5px white;
 } */
 
-.message__title{
+.message__bar{
     position: fixed;
     background-color: white;
     border-radius: 20px 20px 0px 0px;
     height: 60px;
     color: #999999;
-    font-size: 21px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     /* border-bottom: 1px solid rgba(0,0,0,0.1); */
     padding: 0px 10px 0px 10px;
     box-sizing: border-box;
+}
+.message__bar-chat, .message__bar-self{
+    cursor: pointer;
+}
+.message__bar-chat{
+    color: #343434;
+    margin-right: 20px;
+    font-weight: 600;
 }
 
 .message__fakeDiv{
@@ -204,7 +212,9 @@
 ul {
     padding: 0px 10px 0px 10px;
 }
-
+.message__self-list{
+    display: none;
+}
 li {
     color: white;
     display: flex;
