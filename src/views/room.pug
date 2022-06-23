@@ -36,11 +36,12 @@ block content
                     
         div.message
             div
-                div.message__title 
-                    span Chat
-
+                div.message__bar 
+                    span.message__bar-chat Chat
+                    span.message__bar-self Self Chat
                 div.message__fakeDiv
-                ul
+                ul.message__chat-list 
+                ul.message__self-list
             form.message__Form
                 textarea.message__Input(placeholder="message" rows="1")
                 i.message__button-icon.fas.fa-paper-plane
