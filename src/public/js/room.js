@@ -18,14 +18,15 @@ let myDataChannel;
 
 // message 창크기
 const message = document.querySelector(".message");
-const messageTitle = document.querySelector(".message__title");
+const messageBar = document.querySelector(".message__bar");
 
 
 function handleResize(){
-  messageTitle.style.width = (message.scrollWidth)+"px";
+  messageBar.style.width = (message.scrollWidth)+"px";
 };
 
 window.addEventListener("resize", handleResize)
+
 
 
 async function initCall() {
@@ -44,7 +45,7 @@ async function initCall() {
   userName = objData.username
   socket.emit("join_room", roomName);
 
-  messageTitle.style.width = (message.scrollWidth)+"px";
+  messageBar.style.width = (message.scrollWidth)+"px";
 }
 
 initCall();
@@ -248,6 +249,38 @@ function time() {
   return timeString
 }
 
+// message bar
+const messageBarChat = messageBar.querySelector(".message__bar-chat");
+const messageBarSelf = messageBar.querySelector(".message__bar-self");
+const messageChatList = document.querySelector(".message__chat-list");
+const messageSelfList = document.querySelector(".message__self-list");
+let messageChat = true
+
+function handleBarClick(event){
+  if (event.target.className === "message__bar-chat"){
+    messageBarChat.style.color = "#343434"
+    messageBarChat.style.fontWeight = "600"
+    messageBarSelf.style.color = "#999999"
+    messageBarSelf.style.fontWeight = "500"
+
+    messageSelfList.style.display = "none"
+    messageChatList.style.display = "block"
+    messageChat = true
+  }
+  else{
+    messageBarChat.style.color = "#999999"
+    messageBarChat.style.fontWeight = "500"
+    messageBarSelf.style.color = "#343434"
+    messageBarSelf.style.fontWeight = "600"
+
+    messageChatList.style.display = "none"
+    messageSelfList.style.display = "block"
+    messageChat = false
+  }
+}
+
+messageBarChat.addEventListener("click", handleBarClick)
+messageBarSelf.addEventListener("click", handleBarClick)
 
 // send message
 
@@ -256,31 +289,46 @@ const msgbutton = document.querySelector(".message__button-icon");
 const msgInput = document.querySelector(".message__Input");
 
 function addMessage(message, person) {
-  const ul = document.querySelector("ul");
+  
   const first_char = person.charAt(0);
   // const time = time()
+  if (messageChat){
+    const ul = document.querySelector(".message__chat-list ");
 
-  if (person === "my"){
+    if (person === "my"){
+      ul.insertAdjacentHTML("beforeend",`
+      <li style="justify-content: right">
+        <div class="message__content" style="align-items: flex-end; background-color: #1EAC86; border-radius: 10px 10px 0 10px;">
+          <span class="message__content-user" style="color: white; ">me</span>
+          <p>${message}</p>
+        </div>
+        
+      </li>`)
+      // <div class="message__user-img" style="margin-left: 15px; ">m</div>
+    }
+    else{
+      ul.insertAdjacentHTML("beforeend",`
+      <li>
+        <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
+        <div class="message__content" style="background-color: rgba(112, 128, 144, 0.1); color:black; border-radius: 10px 10px 10px 0px;">
+          <span class="message__content-user">${person}</span>
+          <p>${message}</p>
+        </div>
+      </li>`)
+    }
+
+  }else{
+    const ul = document.querySelector(".message__self-list ");
     ul.insertAdjacentHTML("beforeend",`
-    <li style="justify-content: right">
-      <div class="message__content" style="align-items: flex-end; background-color: #1EAC86; border-radius: 10px 10px 0 10px;">
-        <span class="message__content-user" style="color: white; ">me</span>
-        <p>${message}</p>
-      </div>
-      
-    </li>`)
-    // <div class="message__user-img" style="margin-left: 15px; ">m</div>
+      <li style="justify-content: right">
+        <div class="message__content" style="align-items: flex-end; background-color: #1EAC86; border-radius: 10px 10px 0 10px;">
+          <span class="message__content-user" style="color: white; ">me</span>
+          <p>${message}</p>
+        </div>
+        
+      </li>`)
   }
-  else{
-    ul.insertAdjacentHTML("beforeend",`
-    <li>
-      <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
-      <div class="message__content" style="background-color: rgba(112, 128, 144, 0.1); color:black; border-radius: 10px 10px 10px 0px;">
-        <span class="message__content-user">${person}</span>
-        <p>${message}</p>
-      </div>
-    </li>`)
-  }
+  
 
 };
 
@@ -305,7 +353,10 @@ function handleMessageSubmit(event){
   addMessage(value, "my")
 
   message.scrollTop = message.scrollHeight;
-  myDataChannel.send(JSON.stringify({value, userName}))
+  if (messageChat){
+    myDataChannel.send(JSON.stringify({value, userName}))
+  }
+  
   
   
   input.value = "";
