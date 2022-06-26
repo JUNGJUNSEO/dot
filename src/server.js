@@ -2,6 +2,7 @@ import http from "http";
 import SocketIO from "socket.io";
 import express from "express";
 
+let user;
 const app = express();
 
 app.set("view engine", "pug");
@@ -17,6 +18,7 @@ app.post("/room", (req, res) => {
   const camera = req.body.camera ? false : true
   const voice = req.body.voice ? false : true
   const {roomname, username} = req.body
+  user = username
   return res.render("room", {roomname, username, camera, voice})
 });
 app.get("/*", (_, res) => res.redirect("/"));
@@ -27,13 +29,14 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection", (socket) => {
-  socket.on("join_room", (roomName) => {
+  socket["nickname"] = user
+  socket.on("join_room", (roomName, userName) => {
     socket.join(roomName);
     // to - 나의 room을 제외한 나와 연결된 room에만 영향.
-    socket.to(roomName).emit("welcome");
+    socket.to(roomName).emit("welcome", userName);
   });
-  socket.on("offer", (offer, roomName) => {
-    socket.to(roomName).emit("offer", offer);
+  socket.on("offer", (offer, roomName, userName) => {
+    socket.to(roomName).emit("offer", offer, userName);
   });
   socket.on("answer", (answer, roomName) => {
     socket.to(roomName).emit("answer", answer);
@@ -44,6 +47,9 @@ wsServer.on("connection", (socket) => {
   socket.on("new_message", (msg, room, done) => {
     socket.to(room).emit("new_message", `${msg}`);
     done();
+  });
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) => socket.to(room).emit("leave", socket.nickname));
   });
 });
 
