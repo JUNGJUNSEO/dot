@@ -1,11 +1,16 @@
 const socket = io();
 
 const myFace = document.getElementById("myFace");
+const peerFace = document.getElementById("peerFace");
+const peerScreen = document.getElementById("peerScreen");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
 const phoneBtn = document.getElementById("phone");
 const camerasSelect = document.getElementById("cameras");
+const audiosSelect = document.getElementById("audios");
 const call = document.getElementById("call");
+const fullScreenBtn = document.getElementById("fullScreen");
+const msgInput = document.querySelector(".message__Input");
 
 
 let myStream;
@@ -15,6 +20,8 @@ let roomName;
 let userName
 let myPeerConnection;
 let myDataChannel;
+let toggleWindow = false
+let peerStream
 
 // message 창크기
 const message = document.querySelector(".message");
@@ -43,7 +50,7 @@ async function initCall() {
   }
   roomName = objData.roomname
   userName = objData.username
-  socket.emit("join_room", roomName);
+  socket.emit("join_room", roomName, userName);
 
   messageBar.style.width = (message.scrollWidth)+"px";
 }
@@ -52,11 +59,13 @@ initCall();
 
 
 
-// 카메라 종류.
-async function getCameras() {
+// 오디오와 카메라 종류.
+async function getDevices() {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const cameras = devices.filter((device) => device.kind === "videoinput");
+    const audios = devices.filter((device) => device.kind === "audioinput");
+
     const currentCamera = myStream.getVideoTracks()[0];
     cameras.forEach((camera) => {
       const option = document.createElement("option");
@@ -67,28 +76,77 @@ async function getCameras() {
       }
       camerasSelect.appendChild(option);
     });
+    
+    const currentAudio = myStream.getAudioTracks()[0];
+    console.log("현재 오디오",currentAudio)
+    audios.forEach((audio) => {
+      const option = document.createElement("option");
+      option.value = audio.deviceId;
+      option.innerText = audio.label;
+      if (currentAudio.label === audio.label) {
+        option.selected = true;
+      }
+      audiosSelect.appendChild(option);
+    });
+
+
   } catch (e) {
     console.log(e);
   }
 }
+let constraints;
+let videoInfo = { facingMode: "user" };
+let audioInfo = true;
 
 // 내 커퓨터의 카메라와 오디오를 가져옴.
-async function getMedia(deviceId) {
+async function getMedia(sort, deviceId) {
   const initialConstrains = {
     audio: true,
     video: { facingMode: "user" },
   };
-  const cameraConstraints = {
-    audio: true,
-    video: { deviceId: { exact: deviceId } },
-  };
+  
+  if(sort === "camera"){
+    videoInfo = { deviceId: { exact: deviceId } }
+    constraints = {
+      audio: audioInfo,
+      video: videoInfo,
+    };
+  }
+  if(sort === "audio"){
+    audioInfo = { deviceId: { exact: deviceId } }
+    constraints = {
+      audio: audioInfo,
+      video: videoInfo,
+    };
+    console.log(constraints)
+  }
+
+  
+
   try {
     myStream = await navigator.mediaDevices.getUserMedia(
-      deviceId ? cameraConstraints : initialConstrains
+      deviceId ? constraints : initialConstrains
     );
-    myFace.srcObject = myStream;
+    if (toggleWindow){
+      peerFace.srcObject = myStream;
+      myFace.srcObject = peerStream;
+    }else{
+      myFace.srcObject = myStream;
+      peerFace.srcObject = peerStream;
+    }
+    if(muted){
+      myStream
+      .getAudioTracks()
+      .forEach((track) => (track.enabled = !track.enabled));
+    } ;
+    if(cameraOff){
+      myStream
+      .getVideoTracks()
+      .forEach((track) => (track.enabled = !track.enabled));
+    };
+ 
     if (!deviceId) {
-      await getCameras();
+      await getDevices();
     }
   } catch (e) {
     console.log(e);
@@ -97,10 +155,10 @@ async function getMedia(deviceId) {
 // 음성 끄고 켜기
 function handleMuteClick() {
   const icon = muteBtn.querySelector("i")
-  
   myStream
-    .getAudioTracks()
-    .forEach((track) => (track.enabled = !track.enabled));
+      .getAudioTracks()
+      .forEach((track) => (track.enabled = !track.enabled));
+  
   
   if (!muted) {
     icon.classList = "fas fa-microphone-slash";
@@ -125,14 +183,14 @@ function handleCameraClick() {
     cameraOff = false;
     buttons.forEach((button) =>{
       button.style.color = "white"
-      button.style.backgroundColor = "rgba(0,0,0,0.4)"
+      button.style.backgroundColor = "#343434"
     })
     phoneIcon.style.color = "#CC0000"
   } else {
     icon.classList = "fas fa-video-slash";
     cameraOff = true;
     buttons.forEach((button) =>{
-      button.style.color = "black"
+      button.style.color = "#343434"
       button.style.backgroundColor = "white"
     })
     phoneIcon.style.color = "#CC0000"
@@ -144,9 +202,17 @@ function handlePhoneClick() {
   history.back() 
 }
 
+// 카메라 변경.
 async function handleCameraChange() {
-  await getMedia(camerasSelect.value);
+  await getMedia("camera", camerasSelect.value);
   if (myPeerConnection) {
+
+    const audioTrack = myStream.getAudioTracks()[0];
+    const audioSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "audio");
+    audioSender.replaceTrack(audioTrack);
+
     const videoTrack = myStream.getVideoTracks()[0];
     const videoSender = myPeerConnection
       .getSenders()
@@ -155,41 +221,76 @@ async function handleCameraChange() {
   }
 }
 
+// 오디오 변경.
+async function handleAudioChange() {
+  await getMedia("audio", audiosSelect.value);
+  if (myPeerConnection) {
+    const audioTrack = myStream.getAudioTracks()[0];
+    const audioSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "audio");
+    audioSender.replaceTrack(audioTrack);
+
+    const videoTrack = myStream.getVideoTracks()[0];
+    const videoSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "video");
+    videoSender.replaceTrack(videoTrack);
+   
+  }
+}
+
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
 phoneBtn.addEventListener("click", handlePhoneClick);
 camerasSelect.addEventListener("input", handleCameraChange);
-
+audiosSelect.addEventListener("input", handleAudioChange);
 // Welcome Form (join a room)
+const overlay =  document.querySelector(".overlay");
+const alarm =  document.querySelector(".alarm");
 
-// const welcomeForm = document.querySelector("form");
+function handleOverlayClick(){
+  overlay.style.display = "none"
+  alarm.style.display = "none"
+}
 
 
+function roomAlarm(name, message) {
+  overlay.style.display = "block"
+  alarm.style.display = "flex"
+  alarm.innerHTML = `<i class="fas fa-bell"></i>
+                      <span>${name} ${message}</span>
+                      `;
+  overlay.addEventListener("click", handleOverlayClick)
+
+}
 
 // Socket Code
-socket.on("welcome", async () => {
-  // 방을 만든 사람.
+socket.on("welcome", async (peerName) => {
   // message - peer에게 오는 message
   myDataChannel = await myPeerConnection.createDataChannel("chat");
   myDataChannel.addEventListener("message", (event) => {
-    const {value, userName} = JSON.parse(event.data)
-    addMessage(value, userName)});
+    const {value, userName, type} = JSON.parse(event.data)
+    addMessage(value, userName, type)});
   
+  fullScreenBtn.querySelector("span").innerText = `Video call with ${peerName}`
+  roomAlarm(peerName, "entered the room!");
   // video
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
-  console.log("sent the offer");
-  socket.emit("offer", offer, roomName);
+  
+  console.log("1. sent the offer ");
+  socket.emit("offer", offer, roomName, userName);
 });
 
-socket.on("offer", async (offer) => {
-
+socket.on("offer", async (offer, peerName) => {
+  fullScreenBtn.querySelector("span").innerText = `Video call with ${peerName}`
   // message - peer에게 오는 message
   myPeerConnection.addEventListener("datachannel", (event) => {
     myDataChannel = event.channel;
     myDataChannel.addEventListener("message", (event) => {
-      const {value, userName} = JSON.parse(event.data)
-      addMessage(value, userName)});
+      const {value, userName, type} = JSON.parse(event.data)
+      addMessage(value, userName, type)});
   });
 
   console.log("received the offer");
@@ -210,10 +311,32 @@ socket.on("ice", (ice) => {
   myPeerConnection.addIceCandidate(ice);
 });
 
+socket.on("leave", (name) => {
+  roomAlarm(name, "left the room!")
+  myDataChannel = undefined
+
+  peerFace.srcObject = null
+  peerScreen.style.display = "none"
+  myFace.srcObject = myStream;
+  fullScreenBtn.querySelector("span").innerText = `Video call`
+});
 // RTC Code
 
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection();
+  console.log("??", myStream.getTracks())
+  myPeerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+          "stun:stun4.l.google.com:19302",
+        ],
+      },
+    ],
+  });
   myPeerConnection.addEventListener("icecandidate", handleIce);
   myPeerConnection.addEventListener("addstream", handleAddStream);
   myStream
@@ -226,16 +349,32 @@ function handleIce(data) {
   socket.emit("ice", data.candidate, roomName);
 }
 
+
+
+
 function handleAddStream(data) {
-  const peerFace = document.getElementById("peerFace");
-  peerFace.srcObject = data.stream;
+  peerStream = data.stream
+  peerFace.srcObject = myStream;
+  peerScreen.style.display = "block"
+  myFace.srcObject = peerStream;
+  toggleWindow = true
 }
 
+function handleWindowChange() {
+  if (toggleWindow){
+    peerFace.srcObject = peerStream;
+    myFace.srcObject = myStream;
+    toggleWindow = false;
+  }else{
+    peerFace.srcObject = myStream;
+    myFace.srcObject = peerStream;
+    toggleWindow = true;
+  }
+  
+}
 
-// setting code
+peerScreen.addEventListener("click", handleWindowChange)
 
-const callSettingIcon = document.querySelector(".call__setting-icon")
-const callSettingBox = document.querySelector(".call__setting-box")
 
 
 // time
@@ -254,6 +393,7 @@ const messageBarChat = messageBar.querySelector(".message__bar-chat");
 const messageBarSelf = messageBar.querySelector(".message__bar-self");
 const messageChatList = document.querySelector(".message__chat-list");
 const messageSelfList = document.querySelector(".message__self-list");
+const dot = document.querySelector(".message__dot")
 let messageChat = true
 
 function handleBarClick(event){
@@ -266,6 +406,7 @@ function handleBarClick(event){
     messageSelfList.style.display = "none"
     messageChatList.style.display = "block"
     messageChat = true
+    dot.style.display = "none"
   }
   else{
     messageBarChat.style.color = "#999999"
@@ -276,6 +417,8 @@ function handleBarClick(event){
     messageChatList.style.display = "none"
     messageSelfList.style.display = "block"
     messageChat = false
+
+    
   }
 }
 
@@ -286,49 +429,112 @@ messageBarSelf.addEventListener("click", handleBarClick)
 
 const msgForm = document.querySelector(".message__Form");
 const msgbutton = document.querySelector(".message__button-icon");
-const msgInput = document.querySelector(".message__Input");
 
-function addMessage(message, person) {
+
+
+function addMessage(message, person, type) {
   
+  const ulChat = document.querySelector(".message__chat-list ");
+  const ulSelf = document.querySelector(".message__self-list ");
   const first_char = person.charAt(0);
   // const time = time()
-  if (messageChat){
-    const ul = document.querySelector(".message__chat-list ");
+  if (type === "text"){
+    if (messageChat){
+      // 상대방과의 대화창.
+      if (person === "my"){
+        ulChat.insertAdjacentHTML("beforeend",`
+        <li style="justify-content: right">
+          <div class="message__content" style="align-items: flex-end; background-color: #1EAC86; border-radius: 10px 10px 0 10px;">
+            <span class="message__content-user" style="color: white; ">me</span>
+            <p>${message}</p>
+          </div>
+          
+        </li>`)
+      }
+      else{
+        ulChat.insertAdjacentHTML("beforeend",`
+        <li style="align-items: flex-end;">
+          <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
+          <div class="message__content" style="background-color: rgba(112, 128, 144, 0.1); color:black; border-radius: 10px 10px 10px 0px;">
+            <span class="message__content-user">${person}</span>
+            <p>${message}</p>
+          </div>
+        </li>`)
+      }
+  
+    }else{
+      // 나와의 대화창
+      if (person === "my"){
+        ulSelf.insertAdjacentHTML("beforeend",`
+        <li style="justify-content: right">
+          <div class="message__content" style="align-items: flex-end; background-color: #1EAC86; border-radius: 10px 10px 0 10px;">
+            <span class="message__content-user" style="color: white; ">me</span>
+            <p>${message}</p>
+          </div>
+          
+        </li>`)
 
-    if (person === "my"){
-      ul.insertAdjacentHTML("beforeend",`
-      <li style="justify-content: right">
-        <div class="message__content" style="align-items: flex-end; background-color: #1EAC86; border-radius: 10px 10px 0 10px;">
-          <span class="message__content-user" style="color: white; ">me</span>
-          <p>${message}</p>
-        </div>
-        
-      </li>`)
-      // <div class="message__user-img" style="margin-left: 15px; ">m</div>
-    }
-    else{
-      ul.insertAdjacentHTML("beforeend",`
-      <li>
-        <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
-        <div class="message__content" style="background-color: rgba(112, 128, 144, 0.1); color:black; border-radius: 10px 10px 10px 0px;">
-          <span class="message__content-user">${person}</span>
-          <p>${message}</p>
-        </div>
-      </li>`)
+      }else{
+        ulChat.insertAdjacentHTML("beforeend",`
+        <li style="align-items: flex-end;">
+          <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
+          <div class="message__content" style="background-color: rgba(112, 128, 144, 0.1); color:black; border-radius: 10px 10px 10px 0px;">
+            <span class="message__content-user">${person}</span>
+            <p>${message}</p>
+          </div>
+        </li>`)
+
+        if (!messageChat){
+          console.log('seo')
+          dot.style.display = "block"
+        }
+      }
+      
     }
 
-  }else{
-    const ul = document.querySelector(".message__self-list ");
-    ul.insertAdjacentHTML("beforeend",`
-      <li style="justify-content: right">
-        <div class="message__content" style="align-items: flex-end; background-color: #1EAC86; border-radius: 10px 10px 0 10px;">
-          <span class="message__content-user" style="color: white; ">me</span>
-          <p>${message}</p>
-        </div>
-        
-      </li>`)
   }
   
+  if (type === "img"){
+    if (messageChat){
+      // 상대방과의 대화창.
+      if (person === "my"){
+        ulChat.insertAdjacentHTML("beforeend",`
+        <li style="justify-content: right">
+          <img src="${message}" class="message__img" style="align-items: flex-end;">
+        </li>`)
+      
+      }
+      else{
+        ulChat.insertAdjacentHTML("beforeend",`
+        <li style="align-items: flex-end;">
+          <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
+          <img src="${message}" class="message__img">
+        </li>`)
+      }
+  
+    }else{
+      // 나와의 대화창
+      if (person === "my"){
+        ulSelf.insertAdjacentHTML("beforeend",`
+        <li style="justify-content: right">
+          <img src="${message}" class="message__img" style="align-items: flex-end;">
+        </li>`)
+      }
+      else{
+        ulChat.insertAdjacentHTML("beforeend",`
+        <li style="align-items: flex-end;">
+          <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
+          <img src="${message}" class="message__img">
+        </li>`)
+
+        if (!messageChat){
+          dot.style.display = "block"
+        }
+      }
+      
+    }
+
+  }
 
 };
 
@@ -337,35 +543,30 @@ function addMessage(message, person) {
 
 
 function handleMessageSubmit(event){
-
-  if (event.key !== 'Enter'){
+  if (event.type === "keypress" && event.key !== 'Enter'){
     return
   }
 
   event.preventDefault();
   
-  const input = msgForm.querySelector(".message__Input");
-  const message = document.querySelector(".message")
-  if (input.value === ""){
+
+  if (msgInput.value === ""){
     return
   }
-  const value = input.value;
-  addMessage(value, "my")
+  const value = msgInput.value;
+  addMessage(value, "my", "text")
 
   message.scrollTop = message.scrollHeight;
-  if (messageChat){
-    myDataChannel.send(JSON.stringify({value, userName}))
+  if (messageChat && myDataChannel){
+    myDataChannel.send(JSON.stringify({value, userName, type:"text"}))
   }
   
-  
-  
-  input.value = "";
+  msgInput.value = "";
 }
 
 
 
 function handleMessageResize(){
-  console.log(msgInput)
   msgInput.style.height = 'auto';
   let height = msgInput.scrollHeight; // 높이
   msgInput.style.height = `${height}px`;
@@ -396,7 +597,7 @@ settingIcon.addEventListener("click", () => {
 });
 
 //Full screen
-const fullScreenBtn = document.getElementById("fullScreen");
+
 const fullScreenIcon = fullScreenBtn.querySelector("i");
 
 const handleFullscreen = () => {
@@ -417,28 +618,81 @@ fullScreenBtn.addEventListener("click", handleFullscreen);
 // message window close
 
 const logoChat = document.querySelector(".logo__chat");
+const stream = document.getElementById("myStream")
 let openChat = true
 
 function handleMessage(){
   const logo = document.querySelector(".logo")
-  const myStream = document.getElementById("myStream")
   const logoChat = document.querySelector(".logo__chat span")
 
   if (openChat){
+    // message.classList.add("translate-x")
     message.style.display = "none"
     logo.style.gridColumn = "1/-1"
-    myStream.style.gridColumn = "1/-1"
+    stream.style.gridColumn = "1/-1"
     logoChat.innerText = "Open the chat box"
     openChat = false
 
   }else{
     message.style.display = "flex"
     logo.style.gridColumn = "1/2"
-    myStream.style.gridColumn = "1/2"
+    stream.style.gridColumn = "1/2"
     logoChat.innerText = "close the chat box"
     openChat = true
   }
 
 }
+const callButton = document.querySelector(".call__button");
+function handleMouseEnter(){
+  callButton.style.display = "flex"
+  fullScreenBtn.style.display = "flex"
+}
+
+function handleMouseLeave(){
+  callButton.style.display = "none"
+  fullScreenBtn.style.display = "none"
+}
 
 logoChat.addEventListener("click", handleMessage)
+stream.addEventListener("mouseenter", handleMouseEnter);
+stream.addEventListener("mouseleave", handleMouseLeave);
+
+
+const imageFile = document.querySelector(".image__input")
+
+function handleImageSubmit(event){
+  const file = event.srcElement.files[0]
+  value = URL.createObjectURL(file);
+  addMessage(value, "my" ,"img")
+
+  message.scrollTop = message.scrollHeight;
+  if (messageChat){
+    myDataChannel.send(JSON.stringify({value, userName, type:"img"}))
+  }
+
+}
+
+imageFile.addEventListener("change", handleImageSubmit)
+
+// 이모티콘 삽입
+const picker = document.querySelector('emoji-picker')
+const emojiButton = document.querySelector('.emoji-button')
+let toggleEmoji = false
+
+function handleEmojiClick(event){
+  msgInput.value += event.detail.unicode
+}
+function handleEmoji(event){
+  const emojiPicker = document.querySelector('emoji-picker');
+  if (!toggleEmoji){
+    emojiPicker.style.display = "block";
+    toggleEmoji = true
+  }else{
+    emojiPicker.style.display = "none";
+    toggleEmoji = false
+  }
+  
+}
+
+picker.addEventListener('emoji-click', handleEmojiClick);
+emojiButton.addEventListener('click', handleEmoji);
