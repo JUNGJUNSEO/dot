@@ -3,6 +3,9 @@ extends base
 block content
 
     div#call(data-id= {roomname, username, camera, voice})
+        div.overlay
+        div.alarm
+            //- i.fas.fa-times
         div.logo
             div.logo__content
                 div.logo__title
@@ -11,14 +14,19 @@ block content
                 div.logo__roomname
                     span Room Name 
                     span #{roomname}
-            i.far.fa-clipboard
-            div.logo__chat
-                span Close the chat box
+            div.logo__button
+                //- i.far.fa-clipboard
+                div.logo__chat
+                    span Close the chat box
         div#myStream
             video#myFace( width="auto" height="100%" autoplay, playsinline)
             div#fullScreen
+                span Video call
                 i.fas.fa-expand
-            video#peerFace(autoplay,playsinline)
+            div#peerScreen
+                div
+                    video#peerFace(width="200" height = "auto" autoplay,playsinline)
+                    i.fas.fa-exchange-alt
             div.call__button
                 div#mute
                     i.fas.fa-microphone
@@ -27,24 +35,42 @@ block content
                 div#phone 
                     i.fas.fa-phone
                 div.call__setting
+                    //- div.call__setting-box-overlay
                     div.call__setting-box
-                        i.fas.fa-camera
                         div
+                            i.fas.fa-camera
                             span camera change
                             select#cameras
+                        div
+                            i.fas.fa-microphone-alt
+                            span audio change
+                            select#audios
                     i.call__setting-icon.fas.fa-wrench
                     
         div.message
             div
                 div.message__bar 
-                    span.message__bar-chat Chat
+                    div.message__bar-chat Chat
+                        div.message__dot
                     span.message__bar-self Self Chat
                 div.message__fakeDiv
                 ul.message__chat-list 
                 ul.message__self-list
             form.message__Form
-                textarea.message__Input(placeholder="message" rows="1")
+                div.message__file
+                    div.message__extra
+                        div.emoji-button
+                            i.far.fa-meh-blank
+                            emoji-picker
+                        label(for="image")
+                            input.image__input(type="file", accept="image/*", id="image")
+                            i.fas.fa-image
+                            
+                        
+                            
+                    textarea.message__Input(placeholder="Write a message" rows="1")
                 i.message__button-icon.fas.fa-paper-plane
+            
             
 block scripts
     script(src="/public/js/room.js") 
