@@ -5,6 +5,12 @@
 @import "./components/video.css";
 @import "./components/welcome.css";
 
+
+body {
+    background-color: #e0e0e0;
+    font-family: 'Open Sans', sans-serif;
+}
+
 main {
     display: flex;
     justify-content: center;
@@ -12,6 +18,34 @@ main {
     height: 100vh;
 }
 
-body {
-    background-color: #e0e0e0;
+
+
+@media screen and (max-width: 768px) {
+    /* #call{
+        grid-template-columns: 1fr;
+    }
+     */
+    .logo{
+        grid-column: 1/-1;
+    }
+    .logo__button{
+        display: none;
+    }
+    .logo__button-active{
+        display: flex;
+    }
+    #myStream{
+        grid-column: 1/-1;
+    }
+    .message{
+        display: none;}
+
+    #myStream.active{
+        display: none;
+    }
+    .message.active{
+        display: flex;
+        grid-column: 1/-1;
+        grid-row: unset;
+    }
 }
