@@ -1,11 +1,9 @@
 extends base
 
 block content
-
+    div.overlay
     div#call(data-id= {roomname, username, camera, voice})
-        div.overlay
         div.alarm
-            //- i.fas.fa-times
         div.logo
             div.logo__content
                 div.logo__title
@@ -15,10 +13,13 @@ block content
                     span Room Name 
                     span #{roomname}
             div.logo__button
-                //- i.far.fa-clipboard
                 div.logo__chat
                     span Close the chat box
+            div.logo__button-active 
+                span Message
+                div.logo__dot
         div#myStream
+            
             video#myFace( width="auto" height="100%" autoplay, playsinline)
             div#fullScreen
                 span Video call
@@ -61,6 +62,7 @@ block content
                     div.message__extra
                         div.emoji-button
                             i.far.fa-meh-blank
+                            
                             emoji-picker
                         label(for="image")
                             input.image__input(type="file", accept="image/*", id="image")
