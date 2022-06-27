@@ -56,5 +56,5 @@ wsServer.on("connection", (socket) => {
   });
 });
 
-const handleListen = () => console.log(`Listening on //localhost:${PORT}`);
+const handleListen = () => console.log(`Listening on http://localhost:${PORT}`);
 httpServer.listen(PORT, handleListen);
