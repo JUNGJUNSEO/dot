@@ -5,6 +5,7 @@ import path from "path";
 
 let user;
 const __dirname = path.resolve();
+const PORT = process.env.PORT || 3000;
 const app = express();
 
 app.set("view engine", "pug");
@@ -56,4 +57,4 @@ wsServer.on("connection", (socket) => {
 });
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
-httpServer.listen(3000, handleListen);
+httpServer.listen(PORT, handleListen);
