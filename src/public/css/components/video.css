@@ -32,6 +32,7 @@
 .logo__roomname {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     margin-left: 30px;
 }
 .logo__roomname span:first-child{
@@ -39,15 +40,39 @@
     font-weight: 500;
 }
 .logo__roomname span:last-child{
-    font-size: 18px;
+    font-size: 16px;
     color: #343434;
 }
 .logo__button{
+    z-index: 1;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-.logo__button i{
+.logo__button-active{
+    display: none;
+    font-size: 13px;
+    height: 36px;
+    padding: 3px 15px 3px 15px;
+    background-color: #1EAC86;
+    border-radius: 10px;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+}
+.logo__dot{
+    display: none;
+    width: 7px;
+    height: 7px;
+    background-color: tomato;
+    border-radius: 50%;
+    position: absolute;
+    top: -5px;
+    right: -9px;
+}
+/* .logo__button i{
     margin-right: 20px;
     font-size: 25px;
     background: white;
@@ -60,7 +85,7 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
-}
+} */
 .logo__chat{
     font-size: 16px;
     font-weight: 500;
@@ -75,6 +100,7 @@
     cursor: pointer;
 }
 #myStream {
+    /* z-index: -1; */
     grid-column: 1 / 2;
     grid-row: 2/ -1;
     position: relative;
@@ -325,6 +351,7 @@ p {
     border-top: 1px solid rgba(0,0,0,0.1);
     margin: 0px 10px 10px 10px;
     min-height: 70px;
+    z-index: 1;
 }
 .message__extra{
     display: flex;
@@ -351,6 +378,15 @@ p {
 .emoji-button{
     cursor: pointer;
     position: relative;
+}
+.overlay{
+    display: none;
+    z-index: 0;
+    position: absolute ;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 emoji-picker{
     display: none;
@@ -389,23 +425,11 @@ emoji-picker{
     }
   }
 
-
-.overlay {
-    display: none;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    z-index: 2;
-}
-
 .alarm {
     display: none;
     background-color: rgb(153, 153, 153, 0.5);
     color: white;
-    width: 330px;
-    display: none;
-    align-items: center;
+    width: 330px; 
     padding: 20px;
     box-sizing: border-box;
     border-radius: 3px;
@@ -415,14 +439,25 @@ emoji-picker{
     transform: translate(-50%, 0);
     font-size: 17px;
     z-index: 1;
+    cursor: pointer;
     /* animation: goAway 0.5s ease-in-out forwards;
     animation-delay: 4s; */
 }
-
-.alarm i{
+.alarm > div{
+    position: relative;
+    align-items: center;
+}
+.alarm > div i:first-child{
     font-size: 20px;
     font-weight: 500;
     margin-right: 20px;
+}
+.alarm__remove-button{
+    position: absolute;
+    color: white;
+    right: -10px;
+    top: -10px;
+    font-size: 13px;
 }
 /* @keyframes closeChat{
     0%{
