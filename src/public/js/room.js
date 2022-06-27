@@ -1,5 +1,6 @@
 const socket = io();
 
+const stream = document.getElementById("myStream")
 const myFace = document.getElementById("myFace");
 const peerFace = document.getElementById("peerFace");
 const peerScreen = document.getElementById("peerScreen");
@@ -11,6 +12,13 @@ const audiosSelect = document.getElementById("audios");
 const call = document.getElementById("call");
 const fullScreenBtn = document.getElementById("fullScreen");
 const msgInput = document.querySelector(".message__Input");
+const message = document.querySelector(".message");
+const messageBar = document.querySelector(".message__bar");
+
+
+const logoChat = document.querySelector(".logo__chat");
+const logoButtonActive = document.querySelector(".logo__button-active");
+const logoDot = document.querySelector(".logo__dot");
 
 
 let myStream;
@@ -22,14 +30,17 @@ let myPeerConnection;
 let myDataChannel;
 let toggleWindow = false
 let peerStream
+let toggleActive = false;
+let openChat = true;
+// let intViewportWidth = window.innerWidth
+
 
 // message 창크기
-const message = document.querySelector(".message");
-const messageBar = document.querySelector(".message__bar");
 
 
 function handleResize(){
   messageBar.style.width = (message.scrollWidth)+"px";
+
 };
 
 window.addEventListener("resize", handleResize)
@@ -246,22 +257,21 @@ phoneBtn.addEventListener("click", handlePhoneClick);
 camerasSelect.addEventListener("input", handleCameraChange);
 audiosSelect.addEventListener("input", handleAudioChange);
 // Welcome Form (join a room)
-const overlay =  document.querySelector(".overlay");
 const alarm =  document.querySelector(".alarm");
 
-function handleOverlayClick(){
-  overlay.style.display = "none"
+function handleAlarmClick(){
   alarm.style.display = "none"
 }
 
-
 function roomAlarm(name, message) {
-  overlay.style.display = "block"
-  alarm.style.display = "flex"
-  alarm.innerHTML = `<i class="fas fa-bell"></i>
+  alarm.style.display = "block"
+  alarm.innerHTML = `<div>
+                      <i class="fas fa-bell"></i>
                       <span>${name} ${message}</span>
+                      <i class="alarm__remove-button fas fa-times"></i>
+                    </div>
                       `;
-  overlay.addEventListener("click", handleOverlayClick)
+  alarm.addEventListener("click", handleAlarmClick)
 
 }
 
@@ -460,6 +470,10 @@ function addMessage(message, person, type) {
             <p>${message}</p>
           </div>
         </li>`)
+        console.log(toggleActive)
+        if (!toggleActive){
+          logoDot.style.display = "block"
+        }
       }
   
     }else{
@@ -485,9 +499,9 @@ function addMessage(message, person, type) {
         </li>`)
 
         if (!messageChat){
-          console.log('seo')
           dot.style.display = "block"
         }
+        
       }
       
     }
@@ -510,6 +524,10 @@ function addMessage(message, person, type) {
           <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
           <img src="${message}" class="message__img">
         </li>`)
+        
+        if (!toggleActive){
+          logoDot.style.display = "block"
+        }
       }
   
     }else{
@@ -530,6 +548,7 @@ function addMessage(message, person, type) {
         if (!messageChat){
           dot.style.display = "block"
         }
+        
       }
       
     }
@@ -537,10 +556,6 @@ function addMessage(message, person, type) {
   }
 
 };
-
-
-
-
 
 function handleMessageSubmit(event){
   if (event.type === "keypress" && event.key !== 'Enter'){
@@ -606,7 +621,7 @@ const handleFullscreen = () => {
     document.exitFullscreen();
     fullScreenIcon.classList = "fas fa-expand";
   } else {
-    const stream = document.getElementById("myStream")
+    // const stream = document.getElementById("myStream")
     stream.requestFullscreen();
     fullScreenIcon.classList = "fas fa-compress";
   }
@@ -617,9 +632,23 @@ fullScreenBtn.addEventListener("click", handleFullscreen);
 
 // message window close
 
-const logoChat = document.querySelector(".logo__chat");
-const stream = document.getElementById("myStream")
-let openChat = true
+
+
+logoButtonActive.addEventListener("click", ()=> {
+  const button = logoButtonActive.querySelector("span")
+
+  stream.classList.toggle("active");
+  message.classList.toggle("active");
+  if (!toggleActive){
+    button.innerText = "Vedio";
+    toggleActive = true;
+    logoDot.style.display = "none"
+  }else{
+    button.innerText = "Message";
+    toggleActive = false;
+  }
+  messageBar.style.width = (message.scrollWidth)+"px";
+})
 
 function handleMessage(){
   const logo = document.querySelector(".logo")
@@ -675,24 +704,30 @@ function handleImageSubmit(event){
 imageFile.addEventListener("change", handleImageSubmit)
 
 // 이모티콘 삽입
-const picker = document.querySelector('emoji-picker')
+const emojiPicker = document.querySelector('emoji-picker');
 const emojiButton = document.querySelector('.emoji-button')
+const overlay = document.querySelector('.overlay');
 let toggleEmoji = false
 
 function handleEmojiClick(event){
   msgInput.value += event.detail.unicode
 }
 function handleEmoji(event){
-  const emojiPicker = document.querySelector('emoji-picker');
+  
   if (!toggleEmoji){
     emojiPicker.style.display = "block";
+    overlay.style.display = "block";
+    stream.style.zIndex = "-1"
     toggleEmoji = true
   }else{
     emojiPicker.style.display = "none";
+    overlay.style.display = "none";
+    stream.style.zIndex = "unset"
     toggleEmoji = false
   }
   
 }
 
-picker.addEventListener('emoji-click', handleEmojiClick);
+emojiPicker.addEventListener('emoji-click', handleEmojiClick);
 emojiButton.addEventListener('click', handleEmoji);
+overlay.addEventListener('click', handleEmoji);
