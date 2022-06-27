@@ -1,14 +1,16 @@
 import http from "http";
-import SocketIO from "socket.io";
+import { Server } from "socket.io";
 import express from "express";
+import path from "path";
 
 let user;
+const __dirname = path.resolve();
 const app = express();
 
 app.set("view engine", "pug");
-app.set("views", __dirname + "/views");
+app.set("views", __dirname + "/src/views");
 // /public에 static을 해준 이유는?
-app.use("/public", express.static(__dirname + "/public"));
+app.use("/public", express.static(__dirname + "/src/public"));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -26,7 +28,7 @@ app.get("/*", (_, res) => res.redirect("/"));
 
 
 const httpServer = http.createServer(app);
-const wsServer = SocketIO(httpServer);
+const wsServer = new Server(httpServer);
 
 wsServer.on("connection", (socket) => {
   socket["nickname"] = user
