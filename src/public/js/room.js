@@ -280,6 +280,7 @@ socket.on("welcome", async (peerName) => {
   // message - peer에게 오는 message
   myDataChannel = await myPeerConnection.createDataChannel("chat");
   myDataChannel.addEventListener("message", (event) => {
+    console.log(event.data)
     const {value, userName, type} = JSON.parse(event.data)
     addMessage(value, userName, type)});
   
@@ -519,10 +520,11 @@ function addMessage(message, person, type) {
       
       }
       else{
+        console.log(message)
         ulChat.insertAdjacentHTML("beforeend",`
         <li style="align-items: flex-end;">
           <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
-          <img src="${message}" class="message__img">
+          <img src="/${message}" class="message__img">
         </li>`)
         
         if (!toggleActive){
@@ -542,7 +544,7 @@ function addMessage(message, person, type) {
         ulChat.insertAdjacentHTML("beforeend",`
         <li style="align-items: flex-end;">
           <div class="message__user-img" style="margin-right: 8px; ">${first_char}</div>
-          <img src="${message}" class="message__img">
+          <img src="/${message}" class="message__img">
         </li>`)
 
         if (!messageChat){
@@ -689,13 +691,26 @@ stream.addEventListener("mouseleave", handleMouseLeave);
 
 const imageFile = document.querySelector(".image__input")
 
-function handleImageSubmit(event){
+async function handleImageSubmit(event){
+  console.log(event.target.files)
+  console.log(event.srcElement.files)
   const file = event.srcElement.files[0]
+  console.log(file)
+  
   value = URL.createObjectURL(file);
   addMessage(value, "my" ,"img")
 
   message.scrollTop = message.scrollHeight;
   if (messageChat){
+    const formData = new FormData();
+    formData.append("image", file)
+
+    const response = await fetch("/room/image", {
+      method: "POST",
+      body: formData,
+    }).catch(console.error);
+    
+    value = await response.json()
     myDataChannel.send(JSON.stringify({value, userName, type:"img"}))
   }
 
