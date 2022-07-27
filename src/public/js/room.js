@@ -704,7 +704,7 @@ async function handleImageSubmit(event){
   if (messageChat){
     const formData = new FormData();
     formData.append("image", file)
-
+    console.log(formData)
     const response = await fetch("/room/image", {
       method: "POST",
       body: formData,

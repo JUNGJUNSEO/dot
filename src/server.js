@@ -25,7 +25,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.get("/", (_, res) => res.render("home"));
 app.post("/room", (req, res) => {
- 
   const camera = req.body.camera ? false : true;
   const voice = req.body.voice ? false : true;
   const {roomname, username} = req.body;
