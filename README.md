@@ -1,7 +1,7 @@
 # dot
 dot은 Node.js, WebRTC 및 Websocket을 사용하여 만든 비디오 회의 플랫폼입니다. 이 프로젝트는 Socket.io를 통해 웹소켓을 사용하여 통신하고, Pug 템플릿 엔진을 사용하여 렌더링합니다.
 
-웹 사이트 주소: https://consumer-jdhpyo3rp-jungjunseo.vercel.app/
+웹 사이트 주소: https://nomadcoders.co/community/thread/5579
 
 ## 기술 스택
 
